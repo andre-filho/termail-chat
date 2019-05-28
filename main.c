@@ -19,7 +19,7 @@
 #include <mqueue.h>
 #include <errno.h>
 #include <string.h>
-#define QUEUE_PERMISSIONS 0660
+#define QUEUE_PERMISSIONS 0666
 extern int errno;
 
 void do_the_fork_stuff(pid_t f_pid)
@@ -41,14 +41,7 @@ int main(int argc, char const *argv[])
 
   mqd_t q1;
 
-  struct mq_attr attr;
-
-  attr.mq_flags = 0;
-  attr.mq_maxmsg = 30;
-  attr.mq_msgsize = 256; 
-  attr.mq_curmsgs = 0;
-
-  q1 = mq_open("/porra", O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr);
+  q1 = mq_open("/porra", O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, NULL);
 
   if(q1 == -1) {
       int errnum;
