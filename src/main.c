@@ -30,42 +30,37 @@
 
 extern int errno;
 
-int print_error()
-{
-  int errnum;
-  char *errmsg;
-
-  errnum = errno;
-  errmsg = strerror(errnum);
-  fprintf(stderr, "Error: %s \n", errmsg);
-
-  return -1;
-}
-
-void * verify_new_message(mqd_t q1, char *msg)
-{
-  debug_log("Veryfing new messages");
-  // TODO: colocar condição para parar de ler
-  for (;;)
-  {
-    if ((mq_receive(q1, (void *)&msg, sizeof(msg), 0)) < 0)
-    {
-      perror("mq_recieve:");
-      exit(1);
-    }
-    printf("Recieved msg value: %s\n", msg);
-    // pthread_exit(NULL);
-  }
-}
-
-void * send_message()
-{
-  
-}
+struct verify_msg_args {
+    mqd_t q;
+    char *msg;
+};
 
 void debug_log(char * str)
 {
   printf("DEBUG: %s\n", str);
+}
+
+void * verify_new_message(void *params)
+{
+  debug_log("Veryfing new messages");
+  // TODO: colocar condição para parar de ler
+  struct verify_msg_args *args = (struct verify_msg_args *) params;
+  for (;;)
+  {
+    if ((mq_receive(args->q, (void *)args->msg, 8200, NULL)) < 0)
+    {
+      perror("mq_receive");
+      exit(1);
+    }
+    printf("Recieved msg value: %s\n", args->msg);
+  }
+    pthread_exit(NULL);
+}
+
+void * send_message(void *params)
+{
+
+  
 }
 
 char *gen_queue_name(char *name)
@@ -75,66 +70,84 @@ char *gen_queue_name(char *name)
 
 void config_mq(struct mq_attr attr)
 {
+  // TODO: Para essa função fucionar precisa passar uma referência para o
+  // attr ou retorna-lo
   attr.mq_flags = 0;
   attr.mq_maxmsg = 30;
   attr.mq_msgsize = sizeof(MAX_MSG_SIZE);
   attr.mq_curmsgs = 0;
+
 }
+
 
 int main(int argc, char const *argv[])
 {
-  pid_t fork_pid;
 
   mqd_t q1;
 
   pthread_t t_receive;
-  pthread_t t_send;
 
-  const char *msg = "asdf";
-  char *msg2;
-  msg2 = (char *)malloc(5 * sizeof(char));
+  /* const char *msg = "asdf"; */
+  char msg = 'a';
+  char msg2[8200];
 
   struct mq_attr attr;
 
-  config_mq(attr);
+  /* attr.mq_maxmsg = 30; */
+  /* attr.mq_msgsize = MAX_MSG_SIZE; */
 
   debug_log("Creating FIFO");
-  q1 = mq_open("/porra", O_RDWR | O_CREAT, QUEUE_PERMISSIONS, &attr);
+  q1 = mq_open("/porra", O_RDWR | O_CREAT, QUEUE_PERMISSIONS, NULL);
 
-  debug_log("Starting thread to receive messages");
-  pthread_create(&t_receive, NULL, (void *) &verify_new_message, (void*)(q1, msg));
-
-  debug_log("open");
   if (q1 == -1)
   {
-    print_error();
+    perror("mq_open");
     return -1;
   }
 
-  int send_return;
+  if(mq_getattr(q1, &attr) == -1)
+  {
+    perror("mq_getattr");
+    return -1;
+  }
+
+  printf("Maximum # of messages on queue: %ld\n", attr.mq_maxmsg);
+  printf("Maximum message size: %ld\n", attr.mq_msgsize);
+
+  struct verify_msg_args params;
+
+  params.q = q1;
+  params.msg = msg2;
+
+  mqd_t q_send;
+
+  q_send = mq_open("/porra", O_RDWR);
 
   debug_log("antes do send");
-  send_return = mq_send(q1, (char *)&msg, strlen(msg), 0);
-
-  mq_close(q1);
-
-  if (send_return != 0)
+  if((mq_send(q_send, (char *)&msg, sizeof(msg), 1)) != 0)
   {
     perror("mq_send");
     return -1;
   }
-  q1 = mq_open("/porra", O_RDWR, QUEUE_PERMISSIONS, &attr);
+  debug_log("Mensagem enviada");
+  mq_close(q_send);
 
-  debug_log("antes do verify");
-  verify_new_message(q1, msg2);
+  debug_log("Starting thread to receive messages");
+  pthread_create(&t_receive, NULL, (void *) &verify_new_message, &params);
+  /* q1 = mq_open("/porra", O_RDWR, QUEUE_PERMISSIONS, &attr); */
 
-  if ((mq_receive(q1, (void *)msg2, sizeof(msg2), (unsigned int *)1) < 0))
-  {
-    print_error();
-    return -1;
-  }
+  /* debug_log("antes do verify"); */
+  /* verify_new_message(q1, msg2); */
+
+  /* if ((mq_receive(q1, (void *)msg2, sizeof(msg2), (unsigned int *)1) < 0)) */
+  /* { */
+  /*   print_error(); */
+  /*   return -1; */
+  /* } */
 
   printf("%s\n\n", msg2);
+
+  while(1);
 
   return 0;
 }
