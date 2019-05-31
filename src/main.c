@@ -63,17 +63,29 @@ void * verify_new_message(void *params)
     pthread_exit(NULL);
 }
 
-void * send_message(void *params)
+void * send_message(void *msg)
 {
   debug_log("Sending message");
-  struct msg_args *args = (struct msg_args *) params;
+  /* struct msg_args *args = (struct msg_args *) params; */
+  msg = (char *) msg;
 
-  if((mq_send(args->q, args->msg, MAX_MSG_SIZE, 1)) != 0)
+  mqd_t q_send;
+  q_send = mq_open("/porra", O_RDWR);
+
+  if(q_send == -1)
+  {
+    perror("mq_open");
+    exit(1);
+  }
+
+  if((mq_send(q_send, msg, MAX_MSG_SIZE, 1)) != 0)
   {
     perror("mq_send");
     exit(1);
   }
-    pthread_exit(NULL);
+
+  mq_close(q_send);
+  pthread_exit(NULL);
 }
 
 char *gen_queue_name(char *name)
@@ -124,35 +136,13 @@ int main(int argc, char const *argv[])
   printf("Maximum # of messages on queue: %ld\n", attr.mq_maxmsg);
   printf("Maximum message size: %ld\n", attr.mq_msgsize);
 
-  struct msg_args read_params, send_params;
+  struct msg_args read_params;
 
   read_params.q = q1;
   read_params.msg = msg2;
 
-  mqd_t q_send;
-  q_send = mq_open("/porra", O_RDWR);
-
-  if(q_send == -1)
-  {
-    perror("mq_open");
-    return -1;
-  }
-
-  send_params.q = q_send;
-  send_params.msg = msg;
-
   debug_log("Starting thread to send message");
-  pthread_create(&t_send, NULL, &send_message, &send_params);
-
-  /* debug_log("antes do send"); */
-  /* if((mq_send(q_send, msg, MAX_MSG_SIZE, 1)) != 0) */
-  /* { */
-  /*   perror("mq_send"); */
-  /*   return -1; */
-  /* } */
-  /* debug_log("Mensagem enviada"); */
-
-  mq_close(q_send);
+  pthread_create(&t_send, NULL, &send_message, msg);
 
   debug_log("Starting thread to receive messages");
   pthread_create(&t_receive, NULL, &verify_new_message, &read_params);
