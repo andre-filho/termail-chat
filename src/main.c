@@ -30,6 +30,8 @@
 #define MAX_USERNAME_SIZE 10
 #define MAX_MSG_SIZE 512
 
+#define FIFO_NAME "/fifo"
+
 // mq_maxmsg não pode ser maior que o valor definido em
 // /proc/sys/fs/mqueue/queues_max
 #define MAX_MSG 10
@@ -70,7 +72,7 @@ void * send_message(void *msg)
   msg = (char *) msg;
 
   mqd_t q_send;
-  q_send = mq_open("/porra", O_RDWR);
+  q_send = mq_open(FIFO_NAME, O_RDWR);
 
   if(q_send == -1)
   {
@@ -119,7 +121,7 @@ int main(int argc, char const *argv[])
   config_mq(&attr);
 
   debug_log("Creating FIFO");
-  q1 = mq_open("/porra", O_RDWR | O_CREAT, 0666, &attr);
+  q1 = mq_open(FIFO_NAME, O_RDWR | O_CREAT, 0666, &attr);
 
   if (q1 == -1)
   {
@@ -149,7 +151,7 @@ int main(int argc, char const *argv[])
 
   printf("\n\n");
 
-  while(1);
+  /* mq_unlink(FIFO_NAME); */
 
   return 0;
 }
