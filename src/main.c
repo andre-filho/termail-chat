@@ -26,7 +26,11 @@
 #define QUEUE_PERMISSIONS 0666
 #define QUEUE_PREFIX "/chat-"
 #define MAX_USERNAME_SIZE 10
-#define MAX_MSG_SIZE 500
+#define MAX_MSG_SIZE 512
+
+// mq_maxmsg não pode ser maior que o valor definido em
+// /proc/sys/fs/mqueue/queues_max
+#define MAX_MSG 10
 
 extern int errno;
 
@@ -47,7 +51,7 @@ void * verify_new_message(void *params)
   struct verify_msg_args *args = (struct verify_msg_args *) params;
   for (;;)
   {
-    if ((mq_receive(args->q, (void *)args->msg, 8200, NULL)) < 0)
+    if ((mq_receive(args->q, (void *)args->msg, MAX_MSG_SIZE, NULL)) < 0)
     {
       perror("mq_receive");
       exit(1);
@@ -73,8 +77,8 @@ void config_mq(struct mq_attr attr)
   // TODO: Para essa função fucionar precisa passar uma referência para o
   // attr ou retorna-lo
   attr.mq_flags = 0;
-  attr.mq_maxmsg = 30;
-  attr.mq_msgsize = sizeof(MAX_MSG_SIZE);
+  attr.mq_maxmsg = MAX_MSG;
+  attr.mq_msgsize = MAX_MSG_SIZE;
   attr.mq_curmsgs = 0;
 
 }
@@ -93,11 +97,12 @@ int main(int argc, char const *argv[])
 
   struct mq_attr attr;
 
-  /* attr.mq_maxmsg = 30; */
-  /* attr.mq_msgsize = MAX_MSG_SIZE; */
+  attr.mq_maxmsg = MAX_MSG;
+  attr.mq_msgsize = MAX_MSG_SIZE;
+  attr.mq_flags = 0;
 
   debug_log("Creating FIFO");
-  q1 = mq_open("/porra", O_RDWR | O_CREAT, QUEUE_PERMISSIONS, NULL);
+  q1 = mq_open("/porra", O_RDWR | O_CREAT, QUEUE_PERMISSIONS, &attr);
 
   if (q1 == -1)
   {
