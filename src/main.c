@@ -29,30 +29,29 @@
 #define QUEUE_PREFIX "/chat-"
 #define MAX_USERNAME_SIZE 10
 #define MAX_MSG_SIZE 512
-
+#define MAX_MSG 10
 #define FIFO_NAME "/fifo"
 
 // mq_maxmsg não pode ser maior que o valor definido em
 // /proc/sys/fs/mqueue/queues_max
-#define MAX_MSG 10
 
 extern int errno;
 
-struct msg_args {
-    mqd_t q;
-    char *msg;
+struct msg_args
+{
+  mqd_t q;
+  char *msg;
 };
 
-void debug_log(char * str)
+void debug_log(char *str)
 {
   printf("DEBUG: %s\n", str);
 }
 
-void * verify_new_message(void *params)
+void *verify_new_message(void *params)
 {
   debug_log("Veryfing new messages");
-  // TODO: colocar condição para parar de ler
-  struct msg_args *args = (struct msg_args *) params;
+  struct msg_args *args = (struct msg_args *)params;
   for (;;)
   {
     if ((mq_receive(args->q, (void *)args->msg, MAX_MSG_SIZE, NULL)) < 0)
@@ -62,25 +61,25 @@ void * verify_new_message(void *params)
     }
     printf("Recieved msg value: %s\n", args->msg);
   }
-    pthread_exit(NULL);
+  pthread_exit(NULL);
 }
 
-void * send_message(void *msg)
+void *send_message(void *msg)
 {
   debug_log("Sending message");
   /* struct msg_args *args = (struct msg_args *) params; */
-  msg = (char *) msg;
+  msg = (char *)msg;
 
   mqd_t q_send;
   q_send = mq_open(FIFO_NAME, O_RDWR);
 
-  if(q_send == -1)
+  if (q_send == -1)
   {
     perror("mq_open");
     exit(1);
   }
 
-  if((mq_send(q_send, msg, MAX_MSG_SIZE, 1)) != 0)
+  if ((mq_send(q_send, msg, MAX_MSG_SIZE, 1)) != 0)
   {
     perror("mq_send");
     exit(1);
@@ -101,9 +100,7 @@ void config_mq(struct mq_attr *attr)
   attr->mq_maxmsg = MAX_MSG;
   attr->mq_msgsize = MAX_MSG_SIZE;
   attr->mq_curmsgs = 0;
-
 }
-
 
 int main(int argc, char const *argv[])
 {
@@ -129,7 +126,7 @@ int main(int argc, char const *argv[])
     return -1;
   }
 
-  if(mq_getattr(q1, &attr) == -1)
+  if (mq_getattr(q1, &attr) == -1)
   {
     perror("mq_getattr");
     return -1;
