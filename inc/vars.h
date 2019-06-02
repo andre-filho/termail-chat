@@ -9,5 +9,6 @@
 #define MAX_MSG_SIZE 500
 #define MAX_MSG 10
 #define FIFO_NAME "/fifo"
+#define FULL_MSG_SIZE MAX_MSG_SIZE + MAX_USERNAME_SIZE * 2 + 2
 
 #endif // VARS_H

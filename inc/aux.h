@@ -17,6 +17,11 @@ void debug_log(char *str)
   printf("DEBUG: %s\n", str);
 }
 
+void user_log(char *str)
+{
+    printf("------ %s ------\n", str);
+}
+
 void gen_queue_name(char *queue_name, char *username)
 {
     strcpy(queue_name, QUEUE_PREFIX);

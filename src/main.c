@@ -15,6 +15,7 @@ http://wiki.inf.ufpr.br/maziero/lib/exe/fetch.php?media=socm:socm-texto-09.pdf
 #include "aux.h"
 #include "threading.h"
 #include "includes.h"
+#include "messages.h"
 #include "vars.h"
 
 // mq_maxmsg não pode ser maior que o valor definido em
@@ -26,6 +27,7 @@ void register_user(char *username)
     printf("Bem vindo ao Chat!\n");
     printf("Qual seu nome de usuário?(Máximo 10 caracteres)\n");
     scanf("%s", username);
+    getchar();
 }
 
 mqd_t create_fifo(char *queue_name, struct mq_attr attr)
@@ -42,6 +44,19 @@ mqd_t create_fifo(char *queue_name, struct mq_attr attr)
     return q;
 }
 
+void split_message(char *str, char *sender, char *receiver, char *msg)
+{
+    char *delim = ":";
+    char *token;
+
+    token = strtok(str, delim);
+    sender = strdup(token);
+    token = strtok(NULL, delim);
+    receiver = strdup(token);
+    token = strtok(NULL, delim);
+    msg = strdup(token);
+
+}
 
 int main(int argc, char const *argv[])
 {
@@ -51,7 +66,7 @@ int main(int argc, char const *argv[])
 
     register_user(username);
 
-    printf("Inicializando CHAT!\n");
+    user_log("Inicializando CHAT!");
     char *queue_name;
     queue_name = (char *)malloc(sizeof(username) + sizeof(QUEUE_PREFIX));
     gen_queue_name(queue_name, username);
@@ -62,7 +77,7 @@ int main(int argc, char const *argv[])
     config_mq(&attr);
 
     user_q = create_fifo(queue_name, attr);
-    printf("CHAT inicializado com sucesso!\n");
+    user_log("CHAT inicializado com sucesso!");
 
     pthread_t t_receive;
     pthread_t t_send;
@@ -77,45 +92,29 @@ int main(int argc, char const *argv[])
 
     struct msg_send send_params;
     send_params.queue_name = queue_name;
+    send_params.sender = username;
+
+    char *msg;
+    msg = (char *)malloc(MAX_MSG_SIZE * sizeof(char));
+
+    char *receiver_username;
+    receiver_username = (char *)malloc(MAX_USERNAME_SIZE * sizeof(char));
+
+    printf("Para enviar uma mensagem digite: USUARIO:Mensagem\n");
 
     while(1)
     {
-        char *msg = "olá tudo bem";
+        printf("Digite o nome do usuário de destino: \n");
+        scanf("%s", receiver_username);
+        getchar();
+        send_params.receiver = receiver_username;
+
+        printf("Digite a mensagem: \n");
+        fgets(msg, MAX_MSG_SIZE, stdin);
         send_params.msg = msg;
+
         pthread_create(&t_send, NULL, &send_message, &send_params);
-        sleep(10);
     }
-
-    /* mqd_t q1; */
-
-    /* pthread_t t_receive; */
-    /* pthread_t t_send; */
-
-    /* char *msg = "olá tudo bem"; */
-    /* char msg2[8200]; */
-
-    /* debug_log("Creating FIFO"); */
-    /* q1 = mq_open(FIFO_NAME, O_RDWR | O_CREAT, 0666, &attr); */
-
-    /* if (q1 == -1) */
-    /* { */
-    /*     perror("mq_open"); */
-    /*     return -1; */
-    /* } */
-
-    /* struct msg_args read_params; */
-    /* read_params.q = q1; */
-    /* read_params.msg = msg2; */
-
-    /* debug_log("Starting thread to send message"); */
-    /* pthread_create(&t_send, NULL, &send_message, msg); */
-
-    /* debug_log("Starting thread to receive messages"); */
-    /* pthread_create(&t_receive, NULL, &verify_new_message, &read_params); */
-
-    /* printf("\n\n"); */
-
-    /* /1* mq_unlink(FIFO_NAME); *1/ */
 
     return 0;
 }
