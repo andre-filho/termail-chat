@@ -21,11 +21,21 @@ http://wiki.inf.ufpr.br/maziero/lib/exe/fetch.php?media=socm:socm-texto-09.pdf
 // /proc/sys/fs/mqueue/queues_max
 //
 
-void register_user(char *username) 
+void register_user(char *username)
 {
     printf("Bem vindo ao Chat!\n");
     printf("Qual seu nome de usuário?(Máximo 10 caracteres)\n");
     scanf("%s", username);
+}
+
+void create_fifo(char *username, mqd_t *user_q, struct mq_attr attr)
+{
+
+    // WIP
+
+    char *queue_name;
+    user_q = mq_open(FIFO_NAME, O_RDWR | O_CREAT, 0666, &attr);
+
 }
 
 
@@ -37,7 +47,18 @@ int main(int argc, char const *argv[])
 
     register_user(username);
 
-    printf("Olá %s\n", username);
+    mqd_t user_q;
+
+    struct mq_attr attr;
+    config_mq(&attr);
+
+    printf("CHAT: Olá %s\n", username);
+
+    char *queue_name;
+    queue_name = (char *)malloc(sizeof(username) + sizeof(QUEUE_PREFIX));
+    gen_queue_name(queue_name, username);
+
+    printf("%s\n", queue_name);
 
     mqd_t q1;
 
@@ -46,10 +67,6 @@ int main(int argc, char const *argv[])
 
     char *msg = "olá tudo bem";
     char msg2[8200];
-
-    struct mq_attr attr;
-
-    config_mq(&attr);
 
     debug_log("Creating FIFO");
     q1 = mq_open(FIFO_NAME, O_RDWR | O_CREAT, 0666, &attr);

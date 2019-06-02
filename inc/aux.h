@@ -17,9 +17,9 @@ void debug_log(char *str)
   printf("DEBUG: %s\n", str);
 }
 
-char *gen_queue_name(char *name)
+void gen_queue_name(char *queue_name, char *username)
 {
-  return strcat(QUEUE_PREFIX, name);
+    strcpy(queue_name, QUEUE_PREFIX);
+    strcat(queue_name, username);
 }
-
 #endif // AUX_H
