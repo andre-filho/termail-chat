@@ -6,7 +6,7 @@
 #define W_PERMISSON 0
 #define QUEUE_PREFIX "/chat-"
 #define MAX_USERNAME_SIZE 10
-#define MAX_MSG_SIZE 512
+#define MAX_MSG_SIZE 500
 #define MAX_MSG 10
 #define FIFO_NAME "/fifo"
 

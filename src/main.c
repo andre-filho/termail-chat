@@ -28,14 +28,18 @@ void register_user(char *username)
     scanf("%s", username);
 }
 
-void create_fifo(char *username, mqd_t *user_q, struct mq_attr attr)
+mqd_t create_fifo(char *queue_name, struct mq_attr attr)
 {
+    mqd_t q;
+    q = mq_open(queue_name, O_RDWR | O_CREAT, 0666, &attr);
 
-    // WIP
+    if (q == -1)
+    {
+        perror("mq_open");
+        exit(1);
+    }
 
-    char *queue_name;
-    user_q = mq_open(FIFO_NAME, O_RDWR | O_CREAT, 0666, &attr);
-
+    return q;
 }
 
 
@@ -47,59 +51,71 @@ int main(int argc, char const *argv[])
 
     register_user(username);
 
+    printf("Inicializando CHAT!\n");
+    char *queue_name;
+    queue_name = (char *)malloc(sizeof(username) + sizeof(QUEUE_PREFIX));
+    gen_queue_name(queue_name, username);
+
     mqd_t user_q;
 
     struct mq_attr attr;
     config_mq(&attr);
 
-    printf("CHAT: Olá %s\n", username);
-
-    char *queue_name;
-    queue_name = (char *)malloc(sizeof(username) + sizeof(QUEUE_PREFIX));
-    gen_queue_name(queue_name, username);
-
-    printf("%s\n", queue_name);
-
-    mqd_t q1;
+    user_q = create_fifo(queue_name, attr);
+    printf("CHAT inicializado com sucesso!\n");
 
     pthread_t t_receive;
     pthread_t t_send;
 
-    char *msg = "olá tudo bem";
-    char msg2[8200];
-
-    debug_log("Creating FIFO");
-    q1 = mq_open(FIFO_NAME, O_RDWR | O_CREAT, 0666, &attr);
-
-    if (q1 == -1)
-    {
-        perror("mq_open");
-        return -1;
-    }
-
-    if (mq_getattr(q1, &attr) == -1)
-    {
-        perror("mq_getattr");
-        return -1;
-    }
-
-    printf("Maximum # of messages on queue: %ld\n", attr.mq_maxmsg);
-    printf("Maximum message size: %ld\n", attr.mq_msgsize);
-
-    struct msg_args read_params;
-
-    read_params.q = q1;
-    read_params.msg = msg2;
-
-    debug_log("Starting thread to send message");
-    pthread_create(&t_send, NULL, &send_message, msg);
-
     debug_log("Starting thread to receive messages");
+    struct msg_receive read_params;
+    read_params.q = user_q;
+
     pthread_create(&t_receive, NULL, &verify_new_message, &read_params);
 
-    printf("\n\n");
+    printf("CHAT: Olá %s\n", username);
 
-    /* mq_unlink(FIFO_NAME); */
+    struct msg_send send_params;
+    send_params.queue_name = queue_name;
+
+    while(1)
+    {
+        char *msg = "olá tudo bem";
+        send_params.msg = msg;
+        pthread_create(&t_send, NULL, &send_message, &send_params);
+        sleep(10);
+    }
+
+    /* mqd_t q1; */
+
+    /* pthread_t t_receive; */
+    /* pthread_t t_send; */
+
+    /* char *msg = "olá tudo bem"; */
+    /* char msg2[8200]; */
+
+    /* debug_log("Creating FIFO"); */
+    /* q1 = mq_open(FIFO_NAME, O_RDWR | O_CREAT, 0666, &attr); */
+
+    /* if (q1 == -1) */
+    /* { */
+    /*     perror("mq_open"); */
+    /*     return -1; */
+    /* } */
+
+    /* struct msg_args read_params; */
+    /* read_params.q = q1; */
+    /* read_params.msg = msg2; */
+
+    /* debug_log("Starting thread to send message"); */
+    /* pthread_create(&t_send, NULL, &send_message, msg); */
+
+    /* debug_log("Starting thread to receive messages"); */
+    /* pthread_create(&t_receive, NULL, &verify_new_message, &read_params); */
+
+    /* printf("\n\n"); */
+
+    /* /1* mq_unlink(FIFO_NAME); *1/ */
 
     return 0;
 }
