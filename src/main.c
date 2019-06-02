@@ -33,7 +33,7 @@ void register_user(char *username)
 mqd_t create_fifo(char *queue_name, struct mq_attr attr)
 {
     mqd_t q;
-    q = mq_open(queue_name, O_RDWR | O_CREAT, 0666, &attr);
+    q = mq_open(queue_name, O_RDWR | O_CREAT, CREATOR_PERMISSON, &attr);
 
     if (q == -1)
     {
@@ -99,8 +99,6 @@ int main(int argc, char const *argv[])
 
     char *receiver_username;
     receiver_username = (char *)malloc(MAX_USERNAME_SIZE * sizeof(char));
-
-    printf("Para enviar uma mensagem digite: USUARIO:Mensagem\n");
 
     while(1)
     {
