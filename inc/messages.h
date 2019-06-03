@@ -3,41 +3,31 @@
 
 #include "includes.h"
 
-char *string_splitter(char *str, char *a, char *b)
+void gen_queue_name(char *queue_name, char *username)
 {
-  char *ns = "";
-  char target;
-  int str_number = 1;
-
-  for (size_t i = 0; i < strlen(str); i++)
-  {
-    target = str[i];
-    // checks if it must be split
-    if (target == ':')
-    {
-      // first split
-      if (str_number == 1)
-      {
-        str_number++;
-        a = ns;
-        ns = "";
-      }
-      // second split
-      else if (str_number == 2)
-      {
-        b = ns;
-        ns = "";
-      }
-    }
-    strcat(ns, (char *)target);
-  }
-  // str will be now only the message
-  str = ns;
+  strcpy(queue_name, QUEUE_PREFIX);
+  strcat(queue_name, username);
 }
 
-void format_message(char *sender, char *receiver, char *message)
+void register_user(char *username)
 {
-  char* clean_message;
+  printf("Please enter your username: (Max 10 characters)\n");
+  scanf("%s", username);
+  getchar();
+}
+
+mqd_t create_fifo(char *queue_name, struct mq_attr attr)
+{
+  mqd_t q;
+  q = mq_open(queue_name, O_RDWR | O_CREAT, CREATOR_PERMISSON, &attr);
+
+  if (q == -1)
+  {
+    perror("mq_open");
+    exit(1);
+  }
+
+  return q;
 }
 
 #endif // MESSAGES_H

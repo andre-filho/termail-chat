@@ -21,7 +21,7 @@ struct msg_receive
 
 void *verify_new_message(void *params)
 {
-    debug_log("Veryfing new messages");
+    // debug_log("Veryfing new messages");
     struct msg_receive *args = (struct msg_receive *)params;
 
     char *msg; 
@@ -58,7 +58,7 @@ void *send_message(void *params)
     char *queue_name;
     queue_name = (char *)malloc(MAX_USERNAME_SIZE * sizeof(char) + sizeof(QUEUE_PREFIX));
 
-    debug_log("Sending message");
+    // debug_log("Sending message");
     struct msg_send *args = (struct msg_send *) params;
 
     gen_queue_name(queue_name, args->receiver);

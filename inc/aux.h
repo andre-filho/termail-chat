@@ -19,12 +19,7 @@ void debug_log(char *str)
 
 void user_log(char *str)
 {
-    printf("------ %s ------\n", str);
+  printf("CHAT: %s\n", str);
 }
 
-void gen_queue_name(char *queue_name, char *username)
-{
-    strcpy(queue_name, QUEUE_PREFIX);
-    strcat(queue_name, username);
-}
 #endif // AUX_H
