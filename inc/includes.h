@@ -12,5 +12,7 @@
 #include <errno.h>
 #include <string.h>
 #include <pthread.h>
+#include <stdio.h> 
+#include <signal.h> 
 
 #endif // INCLUDES_H

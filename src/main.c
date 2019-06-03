@@ -16,6 +16,7 @@ http://wiki.inf.ufpr.br/maziero/lib/exe/fetch.php?media=socm:socm-texto-09.pdf
 #include "vars.h"
 #include "aux.h"
 #include "messages.h"
+#include "sighandler.h"
 #include "threading.h"
 #include "includes.h"
 
@@ -25,6 +26,7 @@ http://wiki.inf.ufpr.br/maziero/lib/exe/fetch.php?media=socm:socm-texto-09.pdf
 
 int main(int argc, char const *argv[])
 {
+    signal(SIGINT, siginit_handler);
     char *username;
     username = (char *)malloc(MAX_USERNAME_SIZE * sizeof(char));
 
@@ -60,23 +62,28 @@ int main(int argc, char const *argv[])
     send_params.queue_name = queue_name;
     send_params.sender = username;
 
+    user_log("Send a message following the format: user:message");
+    user_log("To exit type: exit");
+
     char *msg;
-    msg = (char *)malloc(MAX_MSG_SIZE * sizeof(char));
-
     char *receiver_username;
-    receiver_username = (char *)malloc(MAX_USERNAME_SIZE * sizeof(char));
-
     char *all;
     all = (char *)malloc((MAX_MSG_SIZE + (MAX_USERNAME_SIZE * 2) * sizeof(char)));
 
     char split[] = ":";
+    char *exit = "exit";
     while (1)
     {
         scanf("%[^\n]*c", all);
         getchar();
 
-        username = strtok(all, split);
-        receiver_username = strtok(NULL, split);
+        if((strcmp(all, exit)) == 0) 
+        {
+            user_log("Exiting...");
+            return 0;
+        }
+
+        receiver_username = strtok(all, split);
         msg = strtok(NULL, split);
 
         send_params.receiver = receiver_username;
