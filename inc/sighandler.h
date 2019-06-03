@@ -6,7 +6,7 @@
 
 void siginit_handler(int sig_num)
 {
-    user_log("Chat can't be terminated using CTRL+C");
+    user_log("Chat can't be terminated using CTRL+C! Use'exit' command to quit.");
 }
 
 

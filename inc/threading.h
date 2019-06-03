@@ -81,10 +81,33 @@ void *send_message(void *params)
     snprintf(message, FULL_MSG_SIZE, "%s:%s:%s", 
             args->sender, args->receiver, args->msg);
 
-    if ((mq_send(q_send, message, MAX_MSG_SIZE, 1)) != 0)
+    if ((mq_send(q_send, message, MAX_MSG_SIZE, 1)) == -1)
     {
-        perror("mq_send");
-        exit(1);
+        if(errno == EAGAIN){
+            // How to test this?
+            int tries = 3;
+            for(; tries > 0; tries--)
+            {
+                if ((mq_send(q_send, message, MAX_MSG_SIZE, 1)) == 0)
+                {
+                    break;
+                }
+                sleep(3);
+            }
+            if(tries == 0)
+            {
+                printf("ERRO: %s\n", message);
+                mq_close(q_send);
+                free(message);
+                free(queue_name);
+                pthread_exit(NULL);
+            }
+        }
+        else
+        {
+            perror("mq_send");
+            exit(1);
+        }
     }
 
     mq_close(q_send);

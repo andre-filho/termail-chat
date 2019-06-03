@@ -62,7 +62,7 @@ int main(int argc, char const *argv[])
     send_params.queue_name = queue_name;
     send_params.sender = username;
 
-    user_log("Send a message following the format: user:message");
+    user_log("Send a message following the format:user:message");
     user_log("To exit type: exit");
 
     char *msg;
