@@ -80,6 +80,7 @@ int main(int argc, char const *argv[])
         if((strcmp(all, exit)) == 0) 
         {
             user_log("Exiting...");
+            mq_unlink(queue_name);
             return 0;
         }
 
