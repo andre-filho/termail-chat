@@ -25,8 +25,27 @@ void init()
   printf("----------------------------------------------\n\n");
 }
 
-void say_goodnight() {}
+void list_users()
+{
+    struct dirent *d;
+    DIR *dir = opendir(MQ_DIR);
+    
+    char *token;
+    char *name;
 
-void show_help() {}
+    user_log("Showing all connected users...");
+
+    while((d = readdir(dir)) != NULL){
+        if(d->d_type == DT_REG)
+        {
+            char delim[] = "-";
+            token = strtok(d->d_name, delim);
+            name = strtok(NULL, delim);
+
+            printf("%s\n", name);
+        }
+    }
+    closedir(dir);
+}
 
 #endif // MENU_H

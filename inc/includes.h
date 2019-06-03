@@ -14,5 +14,7 @@
 #include <pthread.h>
 #include <stdio.h> 
 #include <signal.h> 
+#include <dirent.h> 
+
 
 #endif // INCLUDES_H

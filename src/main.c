@@ -1,17 +1,3 @@
-/*
-   dois processo que manda os sinal entre eles
-   tratar o ctrl+c (SIGINT que fecha a parada)
-   10 char para cd nome e 500 de mensagem
-
-   user    ~> rw
-   group   ~> w
-   others  ~> w
-
-fechar: /dev/mqueue e deleta saporra
-
-http://wiki.inf.ufpr.br/maziero/lib/exe/fetch.php?media=socm:socm-texto-09.pdf
-*/
-
 #include "menu.h"
 #include "vars.h"
 #include "aux.h"
@@ -20,9 +6,6 @@ http://wiki.inf.ufpr.br/maziero/lib/exe/fetch.php?media=socm:socm-texto-09.pdf
 #include "threading.h"
 #include "includes.h"
 
-// mq_maxmsg não pode ser maior que o valor definido em
-// /proc/sys/fs/mqueue/queues_max
-//
 
 int main(int argc, char const *argv[])
 {
@@ -72,25 +55,39 @@ int main(int argc, char const *argv[])
 
     char split[] = ":";
     char *exit = "exit";
+    char *list_cmd = "list";
     while (1)
     {
         scanf("%[^\n]*c", all);
         getchar();
 
-        if((strcmp(all, exit)) == 0) 
+        if(strcmp(all, exit) == 0)
         {
-            user_log("Exiting...");
-            mq_unlink(queue_name);
-            return 0;
+            char op;
+            printf("You are about to leave the chat. Are you sure? (y/n)\n");
+            scanf("%c", &op);
+            getchar();
+            if(op == 'y')
+            {
+                user_log("Exiting...");
+                mq_unlink(queue_name);
+                return 0;
+            }
         }
+        else if(strcmp(all, list_cmd) == 0)
+        {
+            list_users();
+        }
+        else 
+        {
+            receiver_username = strtok(all, split);
+            msg = strtok(NULL, split);
 
-        receiver_username = strtok(all, split);
-        msg = strtok(NULL, split);
+            send_params.receiver = receiver_username;
+            send_params.msg = msg;
 
-        send_params.receiver = receiver_username;
-        send_params.msg = msg;
-
-        pthread_create(&t_send, NULL, &send_message, &send_params);
+            pthread_create(&t_send, NULL, &send_message, &send_params);
+        }
     }
 
     return 0;

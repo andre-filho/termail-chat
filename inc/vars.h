@@ -9,5 +9,6 @@
 #define CREATOR_PERMISSON 0662
 // #define CONSUMER_PERMISSON 0222
 #define FULL_MSG_SIZE MAX_MSG_SIZE + MAX_USERNAME_SIZE * 2 + 2
+#define MQ_DIR "/dev/mqueue/"
 
 #endif // VARS_H
