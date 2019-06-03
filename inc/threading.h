@@ -52,29 +52,34 @@ void *verify_new_message(void *params)
 
 void *send_message(void *params)
 {
-    char *message;
-    message = (char *)malloc(FULL_MSG_SIZE * sizeof(char)); 
+    // debug_log("Sending message");
+    struct msg_send *args = (struct msg_send *) params;
 
     char *queue_name;
     queue_name = (char *)malloc(MAX_USERNAME_SIZE * sizeof(char) + sizeof(QUEUE_PREFIX));
 
-    // debug_log("Sending message");
-    struct msg_send *args = (struct msg_send *) params;
-
     gen_queue_name(queue_name, args->receiver);
-
-    snprintf(message, FULL_MSG_SIZE, "%s:%s:%s", 
-            args->sender, args->receiver, args->msg);
 
     mqd_t q_send;
     q_send = mq_open(queue_name, O_RDWR);
 
     if (q_send == -1)
     {
-        // TODO: treat when destination fifo does not exists
+        if(errno == ENOENT)
+        {
+            printf("ERROR: UNKOWNUSER %s\n", args->receiver);
+            free(queue_name);
+            pthread_exit(NULL);
+        }
         perror("mq_open");
         exit(1);
     }
+
+    char *message;
+    message = (char *)malloc(FULL_MSG_SIZE * sizeof(char)); 
+
+    snprintf(message, FULL_MSG_SIZE, "%s:%s:%s", 
+            args->sender, args->receiver, args->msg);
 
     if ((mq_send(q_send, message, MAX_MSG_SIZE, 1)) != 0)
     {
