@@ -21,11 +21,14 @@ struct msg_receive
 
 void *verify_new_message(void *params)
 {
-    // debug_log("Veryfing new messages");
     struct msg_receive *args = (struct msg_receive *)params;
 
-    char *msg; 
+    char *sender;
+    char *receiver;
+    char *msg;
     msg = (char *)malloc(MAX_MSG_SIZE * sizeof(char));
+
+    const char delim[2] = ":";
 
     for (;;)
     {
@@ -34,11 +37,6 @@ void *verify_new_message(void *params)
             perror("mq_receive");
             exit(1);
         }
-
-        char *sender;
-        char *receiver;
-
-        const char delim[2] = ":";
 
         sender = strtok(msg, delim);
         receiver = strtok(NULL, delim);
@@ -52,8 +50,7 @@ void *verify_new_message(void *params)
 
 void *send_message(void *params)
 {
-    // debug_log("Sending message");
-    struct msg_send *args = (struct msg_send *) params;
+    struct msg_send *args = (struct msg_send *)params;
 
     char *queue_name;
     queue_name = (char *)malloc(MAX_USERNAME_SIZE * sizeof(char) + sizeof(QUEUE_PREFIX));
@@ -65,9 +62,10 @@ void *send_message(void *params)
 
     if (q_send == -1)
     {
-        if(errno == ENOENT)
+        if (errno == ENOENT)
         {
             printf("ERROR: UNKOWNUSER %s\n", args->receiver);
+
             free(queue_name);
             pthread_exit(NULL);
         }
@@ -76,17 +74,17 @@ void *send_message(void *params)
     }
 
     char *message;
-    message = (char *)malloc(FULL_MSG_SIZE * sizeof(char)); 
+    message = (char *)malloc(FULL_MSG_SIZE * sizeof(char));
 
-    snprintf(message, FULL_MSG_SIZE, "%s:%s:%s", 
-            args->sender, args->receiver, args->msg);
+    snprintf(message, FULL_MSG_SIZE, "%s:%s:%s", args->sender, args->receiver, args->msg);
 
     if ((mq_send(q_send, message, MAX_MSG_SIZE, 1)) == -1)
     {
-        if(errno == EAGAIN){
-            // How to test this?
+        if (errno == EAGAIN)
+        {
             int tries = 3;
-            for(; tries > 0; tries--)
+
+            for (; tries > 0; tries--)
             {
                 if ((mq_send(q_send, message, MAX_MSG_SIZE, 1)) == 0)
                 {
@@ -94,12 +92,15 @@ void *send_message(void *params)
                 }
                 sleep(3);
             }
-            if(tries == 0)
+            if (tries == 0)
             {
                 printf("ERRO: %s\n", message);
+
                 mq_close(q_send);
+
                 free(message);
                 free(queue_name);
+
                 pthread_exit(NULL);
             }
         }
@@ -111,8 +112,10 @@ void *send_message(void *params)
     }
 
     mq_close(q_send);
+
     free(message);
     free(queue_name);
+
     pthread_exit(NULL);
 }
 
