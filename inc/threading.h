@@ -32,7 +32,7 @@ void *verify_new_message(void *params)
 
     for (;;)
     {
-        if ((mq_receive(args->q, msg, MAX_MSG_SIZE, NULL)) < 0)
+        if ((mq_receive(args->q, msg, FULL_MSG_SIZE, NULL)) < 0)
         {
             perror("mq_receive");
             exit(1);
