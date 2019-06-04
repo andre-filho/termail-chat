@@ -25,7 +25,7 @@ mqd_t create_fifo(char *queue_name, struct mq_attr attr)
 
     if (q == -1)
     {
-        perror("mq_open");
+        perror("create_fifo -> mq_open");
         exit(1);
     }
 

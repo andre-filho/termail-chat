@@ -58,7 +58,7 @@ void *send_message(void *params)
     gen_queue_name(queue_name, args->receiver);
 
     mqd_t q_send;
-    q_send = mq_open(queue_name, O_RDWR);
+    q_send = mq_open(queue_name, O_WRONLY);
 
     if (q_send == -1)
     {
@@ -69,7 +69,7 @@ void *send_message(void *params)
             free(queue_name);
             pthread_exit(NULL);
         }
-        perror("mq_open");
+        perror("send_message -> mq_open");
         exit(1);
     }
 
@@ -106,7 +106,7 @@ void *send_message(void *params)
         }
         else
         {
-            perror("mq_send");
+            perror("send_message -> mq_send");
             exit(1);
         }
     }
