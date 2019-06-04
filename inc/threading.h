@@ -42,7 +42,7 @@ void *verify_new_message(void *params)
         receiver = strtok(NULL, delim);
         msg = strtok(NULL, delim);
 
-        printf("%s: %s\n", sender, msg);
+        printf("%s: %s\n\n", sender, msg);
     }
     free(msg);
     pthread_exit(NULL);

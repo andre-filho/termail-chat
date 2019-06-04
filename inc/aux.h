@@ -14,12 +14,12 @@ void config_mq(struct mq_attr *attr)
 
 void debug_log(char *str)
 {
-    printf("DEBUG: %s\n", str);
+    printf("DEBUG: %s\n\n", str);
 }
 
 void user_log(char *str)
 {
-    printf("CHAT: %s\n", str);
+    printf("CHAT: %s\n\n", str);
 }
 
 void siginit_handler(int sig_num)

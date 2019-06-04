@@ -45,7 +45,7 @@ void list_users()
             token = strtok(d->d_name, delim);
             name = strtok(NULL, delim);
 
-            printf("%s\n", name);
+            printf("~> %s\n", name);
         }
     }
     closedir(dir);
