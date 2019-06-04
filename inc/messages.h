@@ -19,7 +19,9 @@ void register_user(char *username)
 mqd_t create_fifo(char *queue_name, struct mq_attr attr)
 {
     mqd_t q;
-    q = mq_open(queue_name, O_RDWR | O_CREAT, CREATOR_PERMISSON, &attr);
+    umask(0);
+    q = mq_open(queue_name, O_CREAT| O_RDWR, CREATOR_PERMISSON, &attr);
+
 
     if (q == -1)
     {
