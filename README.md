@@ -30,5 +30,5 @@ $ make
 
 $ make run
 
-$ ./exe
+$ ./bin/exe
 ```
